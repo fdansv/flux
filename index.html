@@ -79,19 +79,18 @@
 				var line = this.lines[i];
 				this.context.clearRect ( 0 , 0 , this.canvas.width, this.canvas.height );
 				var positions = line.getTravelerPositions(Date.now());
-				positions.forEach(function(position){
-					this.drawTraveler(position.x, position.y);
-				});
-				this.drawLines();
+				for(var i = 0; i<positions.length; i++){
+					this.drawTraveler(positions[i]);
+				}
+				this.linesDrawn && this.drawLines();
 				
 			}
 			window.requestAnimationFrame(this.tick.bind(this));
 		},
-		drawTraveler: function(x, y){
-			this.drawLines();
+		drawTraveler: function(traveler){
 			this.context.beginPath();
-		    this.context.arc(position.x, position.y, 2, 0, 2 * Math.PI, false);
-		    this.context.fillStyle = 'black';
+		    this.context.arc(traveler.x, traveler.y, 2, 0, 2 * Math.PI, false);
+		    this.context.fillStyle = "darkblue";
 		    this.context.fill();
 		},
 		addLine: function(line){
@@ -114,8 +113,7 @@
 	window.onload = function(){
 		var animator = new Animator(document.getElementById("the_canvas"));
 		var line = new Line([{x: 20, y: 50}, {x: 150, y: 200}, {x: 400, y: 320}]);
-		animator.addLine(line)
-		animator.drawLines();
+		animator.addLine(line);
 		animator.play();
 	};
 	
