@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<canvas id = "the_canvas" width = "700" height = "600"></canvas>
+
+</body>
+<script type="text/javascript">
+
+	var Line = function(geometry){
+		this.points = geometry;
+		this.frequency = 5000; // ms to cross the line 
+		this.travelers = 10;
+		this.getLineProperties();
+		this.startTime = Date.now();
+		this.projEndTime = this.startTime + this.frequency;
+	} 
+
+	var Utils = {
+		mapRange: function(value, low1, high1, low2, high2) {
+		    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+		}
+	};
+
+	Line.prototype = {
+		
+		getLineProperties: function(){
+			var sum = 0;
+			for (var i = 0; i < this.points.length; i++){
+				if (i == this.points.length - 1) continue;
+				var width = Math.abs(this.points[i].x - this.points[i].y);
+				var height = Math.abs(this.points[i + 1].x - this.points[i + 1].y);
+				sum += Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+				this.points[i].milestone = sum;
+			}
+			this.lineLength = sum;	
+			for (var i = 0; i < this.points.length; i++){
+				if (i == this.points.length - 1) continue;
+				this.points[i].milestone = Utils.mapRange(this.points[i].milestone, 0, this.lineLength, 0, 1);
+			}
+		},
+		getTravelerPositions: function(stamp){
+			stamp = this.startTime + stamp % this.frequency;
+			var proportion = Utils.mapRange(stamp, this.startTime, this.projEndTime, 0, 1);
+			for (var i = 0; i < this.points.length; i++){
+				if (proportion <= this.points[i].milestone){
+					var startProportion = this.points[i - 1]? this.points[i - 1].milestone: 0;
+					var x = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].x, this.points[i+1].x);
+					var y = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].y, this.points[i+1].y);
+					for(var p = 0; p<this.travelers)
+					return {x: x, y: y};
+				}
+			}
+		}
+	}
+
+	var Animator = function(canvas){
+		this.lines = [];
+		this.canvas = canvas;
+		this.context = this.canvas.getContext("2d");
+	}
+	Animator.prototype = {
+		play: function(){
+			this.tick();
+		},
+		tick: function(){
+			for (var i = 0; i<this.lines.length; i++){
+				var line = this.lines[i];
+				this.context.clearRect ( 0 , 0 , this.canvas.width, this.canvas.height );
+				var positions = line.getTravelerPositions(Date.now());
+				positions.forEach(function(position){
+					this.drawTraveler(position.x, position.y);
+				});
+				this.drawLines();
+				
+			}
+			window.requestAnimationFrame(this.tick.bind(this));
+		},
+		drawTraveler: function(x, y){
+			this.drawLines();
+			this.context.beginPath();
+		    this.context.arc(position.x, position.y, 2, 0, 2 * Math.PI, false);
+		    this.context.fillStyle = 'black';
+		    this.context.fill();
+		},
+		addLine: function(line){
+			this.lines.push(line);
+		},
+		drawLines: function(){
+			var self = this;
+			this.lines.forEach(function(line){
+				var points = line.points;
+				self.context.beginPath();
+				self.context.moveTo(points[0].x, points[0].y);
+				for(var i = 1; i<points.length; i++){
+					self.context.lineTo(points[i].x, points[i].y);
+				}
+				self.context.stroke();
+			});
+			
+		},
+	}
+	window.onload = function(){
+		var animator = new Animator(document.getElementById("the_canvas"));
+		var line = new Line([{x: 20, y: 50}, {x: 150, y: 200}, {x: 400, y: 320}]);
+		animator.addLine(line)
+		animator.drawLines();
+		animator.play();
+	};
+	
+</script>
+</html>
