@@ -14,7 +14,8 @@
 	var Line = function(geometry){
 		this.points = geometry;
 		this.frequency = 5000; // ms to cross the line 
-		this.travelers = 10;
+		// Travelers are the points "traveling" along a path.
+		this.travelers = 40;
 		this.getLineProperties();
 		this.startTime = Date.now();
 		this.projEndTime = this.startTime + this.frequency;
@@ -46,23 +47,29 @@
 		getTravelerPositions: function(stamp){
 			stamp = this.startTime + stamp % this.frequency;
 			var proportion = Utils.mapRange(stamp, this.startTime, this.projEndTime, 0, 1);
-			for (var i = 0; i < this.points.length; i++){
-				if (proportion <= this.points[i].milestone){
-					var startProportion = this.points[i - 1]? this.points[i - 1].milestone: 0;
-					var x = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].x, this.points[i+1].x);
-					var y = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].y, this.points[i+1].y);
-					for(var p = 0; p<this.travelers)
-					return {x: x, y: y};
+			var travelerPositions = [];
+			for (var p = 0; p<this.travelers; p++){
+				proportion = (proportion + (1/this.travelers)*p)%1;
+				for (var i = 0; i < this.points.length; i++){
+					if (proportion <= this.points[i].milestone){
+						var startProportion = this.points[i - 1]? this.points[i - 1].milestone: 0;
+						var x = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].x, this.points[i+1].x);
+						var y = Utils.mapRange(proportion, startProportion, this.points[i].milestone, this.points[i].y, this.points[i+1].y);
+						travelerPositions.push({x: x, y: y});
+						break;
+					}	
 				}
 			}
+			return travelerPositions;
 		}
 	}
 
-	var Animator = function(canvas){
+	var Animator = function(canvas, options){
 		this.lines = [];
 		this.canvas = canvas;
 		this.context = this.canvas.getContext("2d");
 	}
+
 	Animator.prototype = {
 		play: function(){
 			this.tick();
