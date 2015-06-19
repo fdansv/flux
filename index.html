@@ -119,72 +119,72 @@
 					self.context.lineTo(points[i].x, points[i].y);
 				}
 				self.context.stroke();
-			});
-			
+			});	
 		},
 	}
 
-	function FluxLayer(){
-		this.geometry = ['{',
-		'rows: [',
-		'{',
-		'cartodb_id: 1,',
-		'proportion: 20,',
-		'the_geom: "{"type":"MultiLineString","coordinates":[[[-8.4375,42.94033923],[-77.16796875,37.99616268]]]}"',
-		'},',
-		'{',
-		'cartodb_id: 2,',
-		'proportion: 2,',
-		'the_geom: "{"type":"MultiLineString","coordinates":[[[-7.734375,42.55308029],[-0.87890625,51.72702816]]]}"',
-		'},',
-		'{',
-		'cartodb_id: 3,',
-		'proportion: 40,',
-		'the_geom: "{"type":"MultiLineString","coordinates":[[[-8.26171875,43.58039086],[-65.21484375,-39.90973623]]]}"',
-		'},',
-		'{',
-		'cartodb_id: 4,',
-		'proportion: 5,',
-		'the_geom: "{"type":"MultiLineString","coordinates":[[[-8.4375,42.94033923],[-75.5859375,4.39022893]]]}"',
-		'},',
-		'{',
-		'cartodb_id: 5,',
-		'proportion: 50,',
-		'the_geom: "{"type":"MultiLineString","coordinates":[[[-8.4375,43.06888777],[2.63671875,48.10743119]]]}"',
-		'}',
-		']',
-		'} '].join();
-	}
-
-	FluxLayer.prototype = L.CanvasLayer.extend({
-
-      render: function() {
-        var canvas = this.getCanvas();
-      	var animator = new Animator(canvas);
-        var ctx = canvas.getContext('2d');
-
-        // clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // get center from the map (projected)
-        var point = this._map.latLngToContainerPoint(new L.LatLng(0, 0));
-
-        // render
-        this.renderCircle(ctx, point, (1.0 + Math.sin(Date.now()*0.001))*300);
-      },
-      addLine: function(){
-
+	var FluxLayer = L.CanvasLayer.extend({
+		initialize: function(){
+			this.__proto__.__proto__.initialize();
+			this.canvas = this.getCanvas();
+	      	this.animator = new Animator(this.canvas);
+	        this.ctx = this.canvas.getContext('2d');
+		},
+    	render: function() {
+	        // clear canvas
+	        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	        this.animator.tick();
+	    },
+      setData: function(data){
+      	var rows = JSON.parse(data).rows;
+      	for (var i = 0; i<rows.length; i++){
+      		var points = JSON.parse(rows[i].the_geom).coordinates[0];
+      		var geometry = [];
+      		for (var p = 0; p < points.length; p++){
+      			geometry.push(this._map.latLngToContainerPoint(points[p]));
+      		}
+      		var line = new Line(geometry);
+      		this.animator.addLine(line);
+      	}
       }
     });
 
-    var layer = new FluxLayer();
-    layer.addTo(map);
-
 	window.onload = function(){
 		
-		var line = new Line([{x: 20, y: 50}, {x: 150, y: 200}, {x: 400, y: 320}]);
-		animator.addLine(line);
-		animator.play();
+		// var line = new Line([{x: 20, y: 50}, {x: 150, y: 200}, {x: 400, y: 320}]);
+
+		var geometry = ['{',
+			'"rows": [',
+			'{',
+			'"cartodb_id": 1,',
+			'"proportion": 20,',
+			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-77.16796875,37.99616268]]]}"',
+			'},',
+			'{',
+			'"cartodb_id": 2,',
+			'"proportion": 2,',
+			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-7.734375,42.55308029],[-0.87890625,51.72702816]]]}"',
+			'},',
+			'{',
+			'"cartodb_id": 3,',
+			'"proportion": 40,',
+			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.26171875,43.58039086],[-65.21484375,-39.90973623]]]}"',
+			'},',
+			'{',
+			'"cartodb_id": 4,',
+			'"proportion": 5,',
+			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-75.5859375,4.39022893]]]}"',
+			'},',
+			'{',
+			'"cartodb_id": 5,',
+			'"proportion": 50,',
+			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,43.06888777],[2.63671875,48.10743119]]]}"',
+			'}',
+			']',
+			'} '].join("\n");
+		var layer = new FluxLayer();
+    	layer.addTo(map);
+		layer.setData(geometry);
 	};
 	
 </script>
