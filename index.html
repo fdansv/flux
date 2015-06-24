@@ -19,15 +19,14 @@
 	var map = L.map('map').setView([0.0, -40.0], 2);
 
     L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery <a href="http://stamen.com">Stamen</a>'
+      maxZoom: 18
     }).addTo(map);
 
 	var Line = function(geometry){
 		this.points = geometry;
-		this.frequency = 5000; // ms to cross the line 
+		this.frequency = 2000; // ms to cross the line 
 		// Travelers are the points "traveling" along a path.
-		this.travelers = 40;
+		this.travelers = 20;
 		this.getLineProperties();
 		this.startTime = Date.now();
 		this.projEndTime = this.startTime + this.frequency;
@@ -80,7 +79,7 @@
 		this.lines = [];
 		this.canvas = canvas;
 		this.context = this.canvas.getContext("2d");
-		this.linesDrawn = true;
+		this.linesDrawn = false;
 	}
 
 	Animator.prototype = {
@@ -98,12 +97,11 @@
 				this.linesDrawn && this.drawLines();
 				
 			}
-			window.requestAnimationFrame(this.tick.bind(this));
 		},
 		drawTraveler: function(traveler){
 			this.context.beginPath();
-		    this.context.arc(traveler.x, traveler.y, 2, 0, 2 * Math.PI, false);
-		    this.context.fillStyle = "darkblue";
+		    this.context.arc(traveler.x, traveler.y, 4, 0, 4 * Math.PI, false);
+		    this.context.fillStyle = "gold";
 		    this.context.fill();
 		},
 		addLine: function(line){
@@ -132,8 +130,12 @@
 		},
     	render: function() {
 	        // clear canvas
-	        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	        this.animator.tick();
+	        if (this.getCanvas){
+	        	var context = this.getCanvas().getContext('2d');
+		        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		        this.animator.tick();
+	        	this.redraw();
+	        }
 	    },
       setData: function(data){
       	var rows = JSON.parse(data).rows;
@@ -141,7 +143,7 @@
       		var points = JSON.parse(rows[i].the_geom).coordinates[0];
       		var geometry = [];
       		for (var p = 0; p < points.length; p++){
-      			geometry.push(this._map.latLngToContainerPoint(points[p]));
+      			geometry.push(this._map.latLngToContainerPoint(points[p].reverse()));
       		}
       		var line = new Line(geometry);
       		this.animator.addLine(line);
@@ -149,43 +151,39 @@
       }
     });
 
-	window.onload = function(){
-		
-		// var line = new Line([{x: 20, y: 50}, {x: 150, y: 200}, {x: 400, y: 320}]);
 
-		var geometry = ['{',
-			'"rows": [',
-			'{',
-			'"cartodb_id": 1,',
-			'"proportion": 20,',
-			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-77.16796875,37.99616268]]]}"',
-			'},',
-			'{',
-			'"cartodb_id": 2,',
-			'"proportion": 2,',
-			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-7.734375,42.55308029],[-0.87890625,51.72702816]]]}"',
-			'},',
-			'{',
-			'"cartodb_id": 3,',
-			'"proportion": 40,',
-			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.26171875,43.58039086],[-65.21484375,-39.90973623]]]}"',
-			'},',
-			'{',
-			'"cartodb_id": 4,',
-			'"proportion": 5,',
-			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-75.5859375,4.39022893]]]}"',
-			'},',
-			'{',
-			'"cartodb_id": 5,',
-			'"proportion": 50,',
-			'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,43.06888777],[2.63671875,48.10743119]]]}"',
-			'}',
-			']',
-			'} '].join("\n");
-		var layer = new FluxLayer();
-    	layer.addTo(map);
-		layer.setData(geometry);
-	};
+	var geometry = ['{',
+		'"rows": [',
+		'{',
+		'"cartodb_id": 1,',
+		'"proportion": 20,',
+		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-77.16796875,37.99616268]]]}"',
+		'},',
+		'{',
+		'"cartodb_id": 2,',
+		'"proportion": 2,',
+		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-7.734375,42.55308029],[-0.87890625,51.72702816]]]}"',
+		'},',
+		'{',
+		'"cartodb_id": 3,',
+		'"proportion": 40,',
+		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.26171875,43.58039086],[-65.21484375,-39.90973623]]]}"',
+		'},',
+		'{',
+		'"cartodb_id": 4,',
+		'"proportion": 5,',
+		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-75.5859375,4.39022893]]]}"',
+		'},',
+		'{',
+		'"cartodb_id": 5,',
+		'"proportion": 50,',
+		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,43.06888777],[2.63671875,48.10743119]]]}"',
+		'}',
+		']',
+		'} '].join("\n");
+	var layer = new FluxLayer();
+	layer.addTo(map);
+	layer.setData(geometry);
 	
 </script>
 </html>
