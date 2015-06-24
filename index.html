@@ -89,6 +89,7 @@
 		this.canvas = canvas;
 		this.context = this.canvas.getContext("2d");
 		this.linesDrawn = false;
+		this.mode = "ARROW";
 	}
 
 	Animator.prototype = {
@@ -99,29 +100,47 @@
 			for (var i = 0; i<this.lines.length; i++){
 				var line = this.lines[i];
 				var positions = line.getTravelerPositions(Date.now());
-				for(var j = 0; j<positions.length; j++){
-					this.drawTraveler(positions[j]);
-				}
+				this.drawTravelers(positions);
 				this.linesDrawn && this.drawLines();
 				
 			}
 		},
-		drawTraveler: function(traveler){
-			if (this.mode === "ARROW"){
-
-			}
-			else{
-				var mWidth = 1
-				this.context.beginPath();
-				this.context.fillStyle = "rgba(77, 77, 255, 0.1)";
-			    this.context.arc(traveler.x, traveler.y, mWidth * 3, 0, mWidth * 3 * Math.PI, false);
-			    this.context.fill();
-			    this.context.closePath();
-			    this.context.beginPath();
-			    this.context.fillStyle = "rgba(255, 255, 255, 1)";
-			    this.context.arc(traveler.x, traveler.y, mWidth, 0, mWidth * Math.PI, false);
-			    this.context.fill();
-			    this.context.closePath();
+		drawTravelers: function(positions){
+			var ctx = this.context;
+			var tempCanvas = document.createElement("canvas");
+			var tempCtx = tempCanvas.getContext("2d");
+			var arrHeight = 10;
+			var arrWidth = 8;
+			tempCanvas.width = tempCanvas.height = Math.max(arrHeight, arrWidth) + 10;
+			for(var j = 0; j<positions.length; j++){
+				var traveler = positions[j];
+				if (this.mode === "ARROW"){
+					tempCtx.save();
+					tempCtx.translate(arrWidth/2, arrHeight/2);
+					tempCtx.rotate(30 * Math.PI / 180);
+					tempCtx.beginPath();
+					tempCtx.fillStyle = "rgba(0, 0, 0, 1)";
+					tempCtx.moveTo(0, -arrHeight/2);
+					tempCtx.lineTo(arrWidth/2, arrHeight);
+					tempCtx.lineTo(-arrWidth/2, arrHeight);
+					tempCtx.closePath();
+					tempCtx.fill();
+					tempCtx.restore();
+					ctx.drawImage(tempCanvas, tempCanvas.x, tempCanvas.y);
+				}
+				else{
+					var mWidth = 1
+					ctx.beginPath();
+					ctx.fillStyle = "rgba(77, 77, 255, 0.1)";
+				    ctx.arc(traveler.x, traveler.y, mWidth * 3, 0, mWidth * 3 * Math.PI, false);
+				    ctx.fill();
+				    ctx.closePath();
+				    ctx.beginPath();
+				    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+				    ctx.arc(traveler.x, traveler.y, mWidth, 0, mWidth * Math.PI, false);
+				    ctx.fill();
+				    ctx.closePath();
+				}
 			}
 		},
 		addLine: function(line){
