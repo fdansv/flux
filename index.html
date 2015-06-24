@@ -162,21 +162,21 @@
 	}
 
 	var FluxLayer = L.CanvasLayer.extend({
-		initialize: function(){
-			this.__proto__.__proto__.initialize();
-			this.canvas = this.getCanvas();
-	      	this.animator = new Animator(this.canvas);
-	        this.ctx = this.canvas.getContext('2d');
-		},
+		// initialize: function(){
+		// 	this.__proto__.__proto__.initialize();
+		// 	this.canvas = this.getCanvas();
+	 //      	this.animator = new Animator(this.canvas);
+	 //        this.ctx = this.canvas.getContext('2d');
+		// },
     	render: function() {
-	        if (this.getCanvas){
-	        	var context = this.getCanvas().getContext('2d');
-		        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		        this.animator.tick();
-	        	this.redraw();
-	        }
+    		var canvas = this.getCanvas();
+        	var context = canvas.getContext('2d');
+	        context.clearRect(0, 0, canvas.width, canvas.height);
+	        this.animator.tick();
+        	this.redraw();
 	    },
       setData: function(data){
+      	this.animator = new Animator(this.getCanvas());
       	var rows = JSON.parse(data).rows;
       	for (var i = 0; i<rows.length; i++){
       		var geometry = JSON.parse(rows[i].the_geom).coordinates[0];
