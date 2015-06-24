@@ -98,20 +98,31 @@
 		tick: function(){
 			for (var i = 0; i<this.lines.length; i++){
 				var line = this.lines[i];
-				this.context.clearRect ( 0 , 0 , this.canvas.width, this.canvas.height );
 				var positions = line.getTravelerPositions(Date.now());
-				for(var i = 0; i<positions.length; i++){
-					this.drawTraveler(positions[i]);
+				for(var j = 0; j<positions.length; j++){
+					this.drawTraveler(positions[j]);
 				}
 				this.linesDrawn && this.drawLines();
 				
 			}
 		},
 		drawTraveler: function(traveler){
-			this.context.beginPath();
-		    this.context.arc(traveler.x, traveler.y, 4, 0, 4 * Math.PI, false);
-		    this.context.fillStyle = "gold";
-		    this.context.fill();
+			if (this.mode === "ARROW"){
+
+			}
+			else{
+				var mWidth = 1
+				this.context.beginPath();
+				this.context.fillStyle = "rgba(77, 77, 255, 0.1)";
+			    this.context.arc(traveler.x, traveler.y, mWidth * 3, 0, mWidth * 3 * Math.PI, false);
+			    this.context.fill();
+			    this.context.closePath();
+			    this.context.beginPath();
+			    this.context.fillStyle = "rgba(255, 255, 255, 1)";
+			    this.context.arc(traveler.x, traveler.y, mWidth, 0, mWidth * Math.PI, false);
+			    this.context.fill();
+			    this.context.closePath();
+			}
 		},
 		addLine: function(line){
 			this.lines.push(line);
@@ -126,6 +137,7 @@
 					self.context.lineTo(points[i].x, points[i].y);
 				}
 				self.context.stroke();
+				self.context.closePath();
 			});	
 		},
 	}
@@ -138,7 +150,6 @@
 	        this.ctx = this.canvas.getContext('2d');
 		},
     	render: function() {
-	        // clear canvas
 	        if (this.getCanvas){
 	        	var context = this.getCanvas().getContext('2d');
 		        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -149,11 +160,7 @@
       setData: function(data){
       	var rows = JSON.parse(data).rows;
       	for (var i = 0; i<rows.length; i++){
-      		var points = JSON.parse(rows[i].the_geom).coordinates[0];
-      		var geometry = [];
-      		for (var p = 0; p < points.length; p++){
-      			geometry.push(this._map.latLngToContainerPoint(points[p].reverse()));
-      		}
+      		var geometry = JSON.parse(rows[i].the_geom).coordinates[0];
       		var line = new Line(geometry);
       		this.animator.addLine(line);
       	}
