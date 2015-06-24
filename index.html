@@ -23,10 +23,11 @@
     }).addTo(map);
 
 	var Line = function(geometry){
-		this.points = geometry;
-		this.frequency = 2000; // ms to cross the line 
+		this.points = [];
+		this.geoPoints = geometry;
+		this.frequency = 1000; // ms to cross the line 
 		// Travelers are the points "traveling" along a path.
-		this.travelers = 20;
+		this.travelers = 10;
 		this.getLineProperties();
 		this.startTime = Date.now();
 		this.projEndTime = this.startTime + this.frequency;
@@ -41,6 +42,7 @@
 	Line.prototype = {
 		
 		getLineProperties: function(){
+			this._toLocalPoints();
 			var sum = 0;
 			for (var i = 0; i < this.points.length; i++){
 				if (i == this.points.length - 1) continue;
@@ -52,10 +54,17 @@
 			this.lineLength = sum;	
 			for (var i = 0; i < this.points.length; i++){
 				if (i == this.points.length - 1) continue;
-				this.points[i].milestone = Utils.mapRange(this.points[i].milestone, 0, this.lineLength, 0, 1);
+				this.geoPoints[i].milestone = Utils.mapRange(this.points[i].milestone, 0, this.lineLength, 0, 1);
+			}
+		},
+		_toLocalPoints: function(){
+			for (var i = 0; i < this.geoPoints.length; i++){
+				var position = map.latLngToContainerPoint([this.geoPoints[i][1], this.geoPoints[i][0]])
+				this.points[i] = {x: position.x, y: position.y, milestone: this.geoPoints[i].milestone};
 			}
 		},
 		getTravelerPositions: function(stamp){
+			this._toLocalPoints();
 			stamp = this.startTime + stamp % this.frequency;
 			var proportion = Utils.mapRange(stamp, this.startTime, this.projEndTime, 0, 1);
 			var travelerPositions = [];
