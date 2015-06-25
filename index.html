@@ -172,7 +172,14 @@
 		},
 	}
 
-	var FluxLayer = L.CanvasLayer.extend({
+	function FluxLayer(options){
+		this.getData()
+	};
+
+	FluxLayer.prototype = {
+
+	}
+	L.CanvasLayer.extend({
 		// initialize: function(){
 		// 	this.__proto__.__proto__.initialize();
 		// 	this.canvas = this.getCanvas();
@@ -186,15 +193,15 @@
 	        this.animator.tick();
         	this.redraw();
 	    },
-      setData: function(data){
-      	this.animator = new Animator(this.getCanvas());
-      	var rows = JSON.parse(data).rows;
-      	for (var i = 0; i<rows.length; i++){
-      		var geometry = JSON.parse(rows[i].the_geom).coordinates[0];
-      		var line = new Line(geometry);
-      		this.animator.addLine(line);
-      	}
-      }
+      	setData: function(data){
+	      	this.animator = new Animator(this.getCanvas());
+	      	var rows = JSON.parse(data).rows;
+	      	for (var i = 0; i<rows.length; i++){
+	      		var geometry = JSON.parse(rows[i].the_geom).coordinates[0];
+	      		var line = new Line(geometry);
+	      		this.animator.addLine(line);
+	      	}
+	    }
     });
 
 
