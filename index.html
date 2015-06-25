@@ -107,28 +107,39 @@
 		},
 		drawTravelers: function(positions){
 			var ctx = this.context;
-			var tempCanvas = document.createElement("canvas");
-			var tempCtx = tempCanvas.getContext("2d");
-			var arrHeight = 10;
-			var arrWidth = 8;
-			tempCanvas.width = tempCanvas.height = Math.max(arrHeight, arrWidth) + 10;
-			for(var j = 0; j<positions.length; j++){
-				var traveler = positions[j];
-				if (this.mode === "ARROW"){
-					tempCtx.save();
-					tempCtx.translate(arrWidth/2, arrHeight/2);
-					tempCtx.rotate(30 * Math.PI / 180);
-					tempCtx.beginPath();
-					tempCtx.fillStyle = "rgba(0, 0, 0, 1)";
-					tempCtx.moveTo(0, -arrHeight/2);
-					tempCtx.lineTo(arrWidth/2, arrHeight);
-					tempCtx.lineTo(-arrWidth/2, arrHeight);
-					tempCtx.closePath();
-					tempCtx.fill();
-					tempCtx.restore();
-					ctx.drawImage(tempCanvas, tempCanvas.x, tempCanvas.y);
+			if (this.mode === "ARROW"){
+				if(!this.arrowCanvas){
+					this.arrowCanvas = document.createElement("canvas");
 				}
-				else{
+				var angle = (function(A, B, C){
+					var AB = Math.sqrt(Math.pow(B.x-A.x,2)+ Math.pow(B.y-A.y,2));    
+					var BC = Math.sqrt(Math.pow(B.x-C.x,2)+ Math.pow(B.y-C.y,2)); 
+					var AC = Math.sqrt(Math.pow(C.x-A.x,2)+ Math.pow(C.y-A.y,2));
+					return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB));})
+					({x: positions[0].x, y:0}, positions[0], positions[1]);
+				var arrHeight = 10;
+				var arrWidth = 8;
+				var boxSide = this.arrowCanvas.width = this.arrowCanvas.height = Math.ceil(Math.sqrt(Math.pow(arrWidth, 2) + Math.pow(arrHeight, 2)));
+				var tempCtx = this.arrowCanvas.getContext("2d");
+				tempCtx.save();
+				tempCtx.translate(boxSide/2, boxSide/2);
+				tempCtx.rotate(-angle);
+				tempCtx.beginPath();
+				tempCtx.fillStyle = "rgba(255, 0, 0, 1)";
+				tempCtx.moveTo(0, -arrHeight/2);
+				tempCtx.lineTo(arrWidth/2, arrHeight);
+				tempCtx.lineTo(-arrWidth/2, arrHeight);
+				tempCtx.closePath();
+				tempCtx.fill();
+				tempCtx.restore();
+				for(var j = 0; j<positions.length; j++){
+					var traveler = positions[j];
+					ctx.drawImage(this.arrowCanvas, traveler.x, traveler.y);
+				}
+			}
+			else{
+				for(var j = 0; j<positions.length; j++){
+					var traveler = positions[j]
 					var mWidth = 1
 					ctx.beginPath();
 					ctx.fillStyle = "rgba(77, 77, 255, 0.1)";
