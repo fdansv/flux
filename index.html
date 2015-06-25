@@ -234,9 +234,15 @@
 		'}',
 		']',
 		'} '].join("\n");
-	var layer = new FluxLayer();
+	var layer = new FluxLayer({
+		user: "fdansv",
+		table: "untitled_table_11",
+		api_key: "794a3db60129527035e4c8ab66968a29cb1568be"
+	});
 	layer.addTo(map);
 	layer.setData(geometry);
+
+	var apiUrl = "http://fdansv.cartodb.com/api/v1/sql?q=SELECT%20ST_asgeojson(the_geom)%20FROM%20untitled_table_11&api_key=794a3db60129527035e4c8ab66968a29cb1568be"
 	
 </script>
 </html>
