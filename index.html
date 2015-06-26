@@ -173,67 +173,56 @@
 	}
 
 	function FluxLayer(options){
-		this.getData()
+		this.options = options;
+		this.getData(this.formURL());
+		this.layer = L.CanvasLayer.extend({
+	    	render: function() {
+	    		var canvas = this.getCanvas();
+	        	var context = canvas.getContext('2d');
+		        context.clearRect(0, 0, canvas.width, canvas.height);
+		        this.animator.tick();
+	        	this.redraw();
+		    },
+	      	
+	    });
+		this.animator = new Animator(this.getCanvas());
 	};
 
 	FluxLayer.prototype = {
-
-	}
-	L.CanvasLayer.extend({
-		// initialize: function(){
-		// 	this.__proto__.__proto__.initialize();
-		// 	this.canvas = this.getCanvas();
-	 //      	this.animator = new Animator(this.canvas);
-	 //        this.ctx = this.canvas.getContext('2d');
-		// },
-    	render: function() {
-    		var canvas = this.getCanvas();
-        	var context = canvas.getContext('2d');
-	        context.clearRect(0, 0, canvas.width, canvas.height);
-	        this.animator.tick();
-        	this.redraw();
-	    },
-      	setData: function(data){
-	      	this.animator = new Animator(this.getCanvas());
+		formURL: function(){
+			var template = "http://{{user}}.cartodb.com/api/v1/sql?q=SELECT%20ST_asgeojson(the_geom)%20g%20FROM%20{{table}}";
+			var url = template.replace("{{user}}", this.options.user).replace("{{table}}", this.options.table);
+			if(this.options.api_key){
+				url += "&api_key=" + this.options.api_key;
+			}
+			return url;
+		},
+		getData: function(){
+			var req = new XMLHttpRequest();
+			req.open('GET', 'http://api.foo.com/products', true);
+			req.onreadystatechange = function() {
+		        if (req.readyState === 4) {
+		            if (req.status >= 200 && req.status < 400) {
+		                this.setData(JSON.parse(req.responseText));
+		            } else {
+		                this.error(req.responseText, req.status);
+		            }
+			    }
+		    };
+		},
+		setData: function(data){
 	      	var rows = JSON.parse(data).rows;
 	      	for (var i = 0; i<rows.length; i++){
 	      		var geometry = JSON.parse(rows[i].the_geom).coordinates[0];
 	      		var line = new Line(geometry);
 	      		this.animator.addLine(line);
 	      	}
+	    },
+	    getCanvas: function(){
+	    	return this.layer.getCanvas;
 	    }
-    });
 
-
-	var geometry = ['{',
-		'"rows": [',
-		'{',
-		'"cartodb_id": 1,',
-		'"proportion": 20,',
-		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-77.16796875,37.99616268]]]}"',
-		'},',
-		'{',
-		'"cartodb_id": 2,',
-		'"proportion": 2,',
-		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-7.734375,42.55308029],[-0.87890625,51.72702816]]]}"',
-		'},',
-		'{',
-		'"cartodb_id": 3,',
-		'"proportion": 40,',
-		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.26171875,43.58039086],[-65.21484375,-39.90973623]]]}"',
-		'},',
-		'{',
-		'"cartodb_id": 4,',
-		'"proportion": 5,',
-		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,42.94033923],[-75.5859375,4.39022893]]]}"',
-		'},',
-		'{',
-		'"cartodb_id": 5,',
-		'"proportion": 50,',
-		'"the_geom": "{\\\"type\\\":\\\"MultiLineString\\\",\\\"coordinates\\\":[[[-8.4375,43.06888777],[2.63671875,48.10743119]]]}"',
-		'}',
-		']',
-		'} '].join("\n");
+	};
 	var layer = new FluxLayer({
 		user: "fdansv",
 		table: "untitled_table_11",
@@ -241,8 +230,6 @@
 	});
 	layer.addTo(map);
 	layer.setData(geometry);
-
-	var apiUrl = "http://fdansv.cartodb.com/api/v1/sql?q=SELECT%20ST_asgeojson(the_geom)%20FROM%20untitled_table_11&api_key=794a3db60129527035e4c8ab66968a29cb1568be"
 	
 </script>
 </html>
